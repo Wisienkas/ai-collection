@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import matplotlib as mlp
 import time
 import matplotlib.pyplot as plt
@@ -15,9 +15,9 @@ colors = {'red':  [1.0, 0.0, 0.0],
 
 
 
-h = 10
+h = 9
 w = 10
-s = Som(3, hdim=h, wdim=w)
+s = Som(3, hdim=h, wdim=w, learning_rate= 0.10)
 #for h_i in range(h):
 #    for w_i in range(w):
 #        color = colors[numpy.random.choice(len(colors), 1)]
@@ -33,13 +33,19 @@ def init():
     return [im]
 
 def animate(i):
-    key = numpy.random.choice(colorkeys)
+    key = np.random.choice(colorkeys)
     s.train(colors.get(key))
 
+    # ma = np.amax(s.outputs)
+    # mi = np.amin(s.outputs)
+
+    # out = (s.outputs + np.random.rand(h, w, 3)) % 1
+
+    # im.set_array((out - mi) / (ma - mi))
     im.set_array(s.outputs)
     return [im]
 
-anim = animation.FuncAnimation(fig, animate, init_func=init, interval=1)
+anim = animation.FuncAnimation(fig, animate, init_func=init, interval=100)
 
 plt.show()
 
