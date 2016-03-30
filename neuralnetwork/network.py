@@ -35,11 +35,11 @@ class NeuralNetwork:
         if len(x) is not len(self.network_layers[0]):
             raise Exception("Input len is %s, while required to be %s", (len(x), len(self.network_layers[0])))
 
-    def train(self, x):
+    def train(self, x, y):
         self.test_input(x)
 
         self.predict(x)
-        self.adapt(x)
+        self.adapt(y)
 
     def weight(self, a, b):
         return self.weights.get((a, b))
@@ -67,6 +67,13 @@ class NeuralNetwork:
 
         return [n.last_result for n in self.network_layers[-1]]
 
+    def adapt(self, y):
+        last_layer = None
+        for layer in reversed(self.network_layers):
+            for i, node in enumerate(layer):
+                if last_layer is None:
+
+
 
 class Node:
 
@@ -91,16 +98,16 @@ def sigmoid(x):
 neu = NeuralNetwork([2, 2])
 
 def print_info(neu):
-    for n1 in neu.hidden_layers[0]:
+    for n1 in neu.network_layers[0]:
         print("bias: %s, id: %s" % (n1.bias, n1.id))
-        for n2 in neu.hidden_layers[1]:
+        for n2 in neu.network_layers[1]:
             print("Connected to id: %s, weight: %s" % (n2.id, neu.weights.get((n1, n2))))
 
 print_info(neu)
 
 training = [[random(), random()] for x in range(0, 10000)]
 
-for x in training: neu.train(x, 1)
+for x in training: neu.train(x)
 print("\n##################################################\n")
 
 print_info(neu)
