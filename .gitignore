@@ -1,4 +1,7 @@
 # Idea files
 .idea/*
+**/*.iml
 # Python cache
 **/*.pyc
+# big files ignore
+./mnist

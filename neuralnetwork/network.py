@@ -1,113 +1,95 @@
 import math
 
 __author__ = 'wisienkas'
-from numpy.random import random
+import numpy as np
 
-learning_rate = 0.001
-
-class NeuralNetwork:
-
-    network_layers = []
-    weights = {}
-
-    def __init__(self, layers):
-        if not isinstance(layers, [].__class__):
-            raise Exception("Invalid layer input")
-        for layer in layers:
-            self.add_layer(layer)
-
-    def add_layer(self, layer):
-        predecessors = None
-        if len(self.network_layers) is not 0:
-            predecessors = self.network_layers[-1]
-
-        current_layer = []
-        for i in range(0, layer):
-            node = Node()
-            if predecessors is not None:
-                for old_node in predecessors:
-                    self.weights[(old_node, node)] = random()
-            current_layer.append(node)
-
-        self.network_layers.append(current_layer)
-
-    def test_input(self, x):
-        if len(x) is not len(self.network_layers[0]):
-            raise Exception("Input len is %s, while required to be %s", (len(x), len(self.network_layers[0])))
-
-    def train(self, x, y):
-        self.test_input(x)
-
-        self.predict(x)
-        self.adapt(y)
-
-    def weight(self, a, b):
-        return self.weights.get((a, b))
-
-    # The forward function
-    def forward(self, current_layer):
-        layer_from = self.network_layers[current_layer]
-        layer_to = self.network_layers[current_layer + 1]
-
-        for out_node in layer_to:
-            # Summing up all conncetions to this node "out_node"
-            sum = 0
-            for in_node in layer_from:
-                sum += in_node.last_result * self.weights.get((in_node, out_node))
-            # Use sigmoid to get the result and save it to the node
-            out_node.last_result = sigmoid(out_node.bias + sum)
-
-    def predict(self, x):
-        self.test_input(x)
-        for index, visible_node in enumerate(self.network_layers[0]):
-            visible_node.last_result = x[index]
-
-        for layer in range(0, len(self.network_layers) - 1):
-            self.forward(layer)
-
-        return [n.last_result for n in self.network_layers[-1]]
-
-    def adapt(self, y):
-        last_layer = None
-        for layer in reversed(self.network_layers):
-            for i, node in enumerate(layer):
-                if last_layer is None:
+types = {'class',
+         'regression',}
 
 
+class neuralnet:
 
-class Node:
 
-    last_result = None
+    def __init__(self, shape, type='class'):
+        self.valid_type(type)
+        self.type = type
+        self.shape = shape
+        self.units = self.calculate_unit_shape(shape)
+        self.weights = self.calculate_weight_shape(shape)
+        self.forward_memory = self.units.copy()
+        self.backward_memory = self.units.copy()
 
-    def __init__(self, id = None, bias = None):
-        if id is None:
-            self.id = random()
+
+    def valid_type(self, type):
+        if type not in types:
+            raise Exception("Invalid type, has to be from: %s" % types)
+
+    def calculate_unit_shape(self, shape):
+        unit_list = [np.random.rand(layer) for layer in shape]
+        return unit_list
+
+    def calculate_weight_shape(self, shape):
+        weight_list = [self.get_weight_layer(i,layer, shape) for i, layer in enumerate(shape)]
+        return weight_list
+
+    def get_weight_layer(self, i, layer, shape):
+        if i is 0:
+            return np.random.rand(layer)
         else:
-            self.id = id
+            return np.random.rand(shape[i -1], layer)
 
-        if bias is None:
-            self.bias = random()
-        else:
-            self.bias = bias
+    def valid_data(self, data, expected = None):
+        if expected is None:
+            expected = self.shape[0]
+        if len(data) is not expected:
+            raise Exception("Invalid data len", data, self.shape)
+
+    def forward(self, data):
+        for layer in range(len(self.shape)):
+            if layer is 0:
+                self.forward_memory[layer] = self.weights[layer] * data + self.units[layer]
+            elif layer is len(self.shape) - 1 and self.type is 'class':
+                self.forward_memory[layer] = self.forward_layer_threshold(layer, input_data)
+            else:
+                input_data = self.forward_memory[layer - 1]
+                self.forward_memory[layer] = self.forward_layer(layer, input_data)
+
+        return self.forward_memory[-1]
+
+    def forward_layer(self, layer, data):
+        for index, dest in enumerate(self.units[layer]):
+            self.forward_memory[layer][index] = np.sum(data * self.weights[layer][index]) + dest
+        return self.forward_memory[layer]
+
+    def forward_layer_threshold(self, layer, data):
+        for index, dest in enumerate(self.units[layer]):
+            val = np.sum(data * self.weights[layer][index])
+            self.forward_memory[layer][index] = 1 if val >= dest else 0
+        return self.forward_memory[layer]
+
+    def backward(self, input, expected):
+        self.calculate_error(expected)
+        self.update_weights()
+
+    def calculate_error(self, expected):
+        for layer in reversed(range(len(self.shape))):
+            out = self.forward_memory[layer]
+            if layer >= len(self.shape) - 1:
+                self.backward_memory[layer] = (expected - out)
+            else:
+                error_sum = self.error(layer)
+                self.backward_memory[layer] = out * (1 - out) * (error_sum)
+
+    def error(self, layer):
+        err = self.backward_memory[layer + 1] * self.weights[layer + 1]
+        return err
+
+    def update_weights(self):
+        return
 
 
-def sigmoid(x):
-    return 1 / (1 + math.exp(-x))
 
-
-neu = NeuralNetwork([2, 2])
-
-def print_info(neu):
-    for n1 in neu.network_layers[0]:
-        print("bias: %s, id: %s" % (n1.bias, n1.id))
-        for n2 in neu.network_layers[1]:
-            print("Connected to id: %s, weight: %s" % (n2.id, neu.weights.get((n1, n2))))
-
-print_info(neu)
-
-training = [[random(), random()] for x in range(0, 10000)]
-
-for x in training: neu.train(x)
-print("\n##################################################\n")
-
-print_info(neu)
+nn = neuralnet((2,2,2))
+output = nn.forward([3,3])
+nn.backward([3,3], [0,0])
+print("lol")
