@@ -19,9 +19,9 @@ colors = {'darkyellow': [0.5, 0.5, 0],
           'green': [0,1,0]}
 
 
-h = 20
-w = 20
-s = Som(3, hdim=h, wdim=w, learning_rate=0.10, sigma=1)
+h = 10
+w = 10
+s = Som(3, hdim=h, wdim=w, learning_rate=0.10, sigma=2, a = 200, b = 200)
 #for h_i in range(h):
 #    for w_i in range(w):
 #        color = colors[numpy.random.choice(len(colors), 1)]
@@ -61,9 +61,9 @@ def get_grid_subs(h, w):
 
 def set_img_show(sub, data, color=True):
     if color:
-        sub.imshow(data)
+        sub.imshow(data, interpolation="nearest")
     else:
-        sub.imshow(data, cmap=plt.get_cmap('gray'))
+        sub.imshow(data, cmap=plt.get_cmap('gray'), interpolation="nearest")
     sub.set_xticks([])
     sub.set_yticks([])
 
@@ -77,6 +77,7 @@ for i in range(200):
 
 final_value = s.outputs.copy()
 final_goodness = s.get_goodness()
+print(1 - final_goodness.mean())
 
 
 subs = get_grid_subs(2,2)

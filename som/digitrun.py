@@ -25,14 +25,15 @@ def get_grid_subs(h, w):
     return [plt.subplot(grid) for grid in gridspec]
 
 
-def plot_img_patches(shape, h, w, data):
-    gridspec = get_grid_subs(h,w)
-    subs = [plt.subplot(grid) for grid in gridspec]
+def plot_img_patches(shape, h, w, data, color=True):
+    subs = get_grid_subs(h, w)
     for key, sub in enumerate(subs):
-        sub.im = sub.imshow(data[key,::], cmap = plt.get_cmap('gray'))
+        if color:
+            sub.im = sub.imshow(data[key,::])
+        else:
+            sub.im = sub.imshow(data[key,::], cmap=plt.get_cmap("gray"))
         sub.set_xticks([])
         sub.set_yticks([])
-
 
 def plot_som(shape, h, w):
     gridspec = get_grid_subs(h, w)
@@ -68,8 +69,8 @@ train = mndata.load_training()
 train_pixels = np.array(train[0]) / 255.0
 
 h = 20
-w = 30
-s = Som(len(train[0][0]), hdim=h, wdim=w, learning_rate=0.05, sigma=1.5, a=50000, b=30000)
+w = 20
+s = Som(len(train[0][0]), hdim=h, wdim=w, learning_rate=0.05, sigma=1, a=50000, b=30000)
 iter = index_map(h, w).reshape(h * w, 2)
 #fig, subs = plot_som()
 
@@ -80,13 +81,22 @@ iter = index_map(h, w).reshape(h * w, 2)
 
 #plot_som((pax, pay), h, w)
 #plt.show()
-
+i = 0
 for epoch in range(1):
     for pixels in train_pixels:
+        i += 1
+        if i == 20000:
+            break
         s.train(pixels)
 
+# Showing the actual Self Organized Map
+# After Training
 plot_som((28, 28), h, w)
 plt.show()
 
+# Showing the Self Organized Map U-matrix
+goodness = s.get_goodness(3)
+plt.imshow(goodness, cmap=plt.get_cmap('gray'), interpolation="nearest")
+plt.show()
 
 print("Finished")

@@ -43,10 +43,13 @@ def get_grid_subs(h, w):
     gridspec = gs.GridSpec(int(h), int(w), left=0.001,bottom=0.001,right=0.999,top=0.999,wspace=0.01,hspace=0.01)
     return [plt.subplot(grid) for grid in gridspec]
 
-def plot_img_patches(shape, h, w, data):
+def plot_img_patches(shape, h, w, data, color=True):
     subs = get_grid_subs(h, w)
     for key, sub in enumerate(subs):
-        sub.im = sub.imshow(data[key,::])
+        if color:
+            sub.im = sub.imshow(data[key,::])
+        else:
+            sub.im = sub.imshow(data[key,::], cmap=plt.get_cmap("gray"))
         sub.set_xticks([])
         sub.set_yticks([])
 
@@ -126,5 +129,8 @@ for epoch in range(epocs):
 plot_som((pax, pay, 3), h, w)
 plt.show()
 
+goodness = s.get_goodness(3)
+plt.imshow(goodness, cmap=plt.get_cmap('gray'), interpolation="nearest")
+plt.show()
 
 print("Finished")

@@ -122,5 +122,5 @@ class Som:
             raise Exception("Data is not list or Data and inputdim not same length!!! data: %s, inputdim: %s" % (len(data), self.inputdim))
 
     def get_goodness(self, radius = 5):
-        matrix = self.outputs.copy() * 2 - 1
+        matrix = self.outputs.copy()# * 2 - 1
         return correlation_map(matrix, radius=radius)
