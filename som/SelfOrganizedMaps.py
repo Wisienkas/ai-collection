@@ -124,3 +124,7 @@ class Som:
     def get_goodness(self, radius = 5):
         matrix = self.outputs.copy()# * 2 - 1
         return correlation_map(matrix, radius=radius)
+
+    def append_result_to_file(self, file):
+        fd = open(file, 'a')
+        fd.write()

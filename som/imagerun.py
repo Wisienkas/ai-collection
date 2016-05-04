@@ -80,8 +80,9 @@ def plot_som(shape, h, w):
 
 
 DEBUG = False
-epocs = 50
-img = misc.imread('img/image.jpg') / 255
+epocs = 100
+# img = misc.mread('img/image.jpg') / 255
+img = misc.imread('img/face.png') / 255
 # to gray using G = R*0.299 + G*0.587 + B*0.114
 img_gray = np.sum(img * [0.299, 0.587, 0.144], axis=2)
 x, y = img_gray.shape
@@ -99,7 +100,7 @@ pac, pax, pay, paz = patches.shape
 
 h = x / px
 w = y / py
-s = Som(pax * pay * paz, hdim=h, wdim=w, learning_rate=0.15, sigma=0.5)
+s = Som(pax * pay * paz, hdim=h, wdim=w, learning_rate=0.15, sigma=0.8)
 
 # Will set image as weights on som
 #s.outputs = patches.reshape((h, w, -1))
