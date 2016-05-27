@@ -48,12 +48,16 @@ def get_direction_score(direction_map, coord, matrix):
     return 1 - (sum / n)
 
 
-def correlation_map(matrix, radius=5):
+def correlation_goodness_map(matrix, radius=5):
     x, y = matrix.shape[:2]
     imap = index_map(x, y).reshape(x * y, 2)
     radius_corr = (radius - 1) / 2
     direction_map = index_map(radius,radius).reshape(radius**2, 2) - [radius_corr, radius_corr]
     return np.asmatrix([get_direction_score(direction_map, k, matrix) for i, k in enumerate(imap)]).reshape(x, y)
+
+
+def correlation_map(matrix, input):
+    return np.apply_along_axis(correlation, 2, matrix, input)
 
 
 # Will find the distance from the point using euclidian distance
@@ -98,13 +102,18 @@ class Som:
         #self.validate(data)
         self.iteration += 1
         learning_rate = learning_rate_function(self.learning, 0.001, self.iteration, 1000, a=self.a, b=self.b)
-        kernel = stats.norm(0, self.sigma * learning_rate)
+        decay_sigma = learning_rate_function(self.sigma, 0.001, self.iteration, 1000, a=self.a, b=self.b)
+        kernel = stats.norm(0, decay_sigma)
 
-        diff_matrix = distance_map(self.outputs, data)
+        # Using Euclidean
+        # diff_matrix = distance_map(self.outputs, data)
+        # Using Correlation Coefficient
+        diff_matrix = correlation_map(self.outputs, data)
         best_point = np.unravel_index(diff_matrix.argmin(), diff_matrix.shape)
 
         dist_matrix = index_map_distmap_normalized(self.hdim, self.wdim, best_point)
-        kernel_matrix = np.sqrt(kernel.pdf(dist_matrix))
+        kernel_matrix = kernel.pdf(dist_matrix)
+        #conv = np.average(np.abs(data - self.outputs))
         diff = learning_rate * (data - self.outputs)
         # Now to apply kernel matrix, we roll the array to fit shape
         # goes from shape (10x, 10y, 3z) -> (3z, 10x, 10y)
@@ -113,9 +122,7 @@ class Som:
         diff = np.rollaxis(diff, 0, 3)
         # Update weights
         self.outputs += diff
-        if self.iteration % 500 == 1:
-            print("iteration: %s, learning %s, kernel %s, %s" % (self.iteration, learning_rate, np.amax(kernel_matrix), np.amin(kernel_matrix)))
-            print("Max change: %s, Min change: %s" % (np.amax(diff), np.amin(diff)))
+        return np.average(np.abs(diff))
 
     def validate(self, data):
         if len(data) is not self.inputdim:
@@ -123,7 +130,7 @@ class Som:
 
     def get_goodness(self, radius = 5):
         matrix = self.outputs.copy()# * 2 - 1
-        return correlation_map(matrix, radius=radius)
+        return correlation_goodness_map(matrix, radius=radius)
 
     def append_result_to_file(self, file):
         fd = open(file, 'a')

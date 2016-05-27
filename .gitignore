@@ -6,4 +6,4 @@
 # big files ignore
 ./mnist
 # Ignore generated imgs
-/som/img/generated
+/som/img/
